@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebNote – Sổ tay công việc &amp; lớp học</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-logo">✎</span>
+        <span class="brand-name">WebNote</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="tasks">
+          <span class="nav-ico">▦</span><span>Công việc tháng</span>
+        </button>
+        <button class="nav-item" data-view="notes">
+          <span class="nav-ico">❏</span><span>Ghi chú lớp học</span>
+        </button>
+        <button class="nav-item" data-view="money">
+          <span class="nav-ico">₫</span><span>Thu chi tháng</span>
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="ghost-btn" id="btnTheme" title="Đổi giao diện sáng/tối">◐ <span>Giao diện</span></button>
+        <button class="ghost-btn" id="btnExport" title="Tải bản sao lưu">⤓ <span>Xuất dữ liệu</span></button>
+        <button class="ghost-btn" id="btnImport" title="Khôi phục từ file">⤒ <span>Nhập dữ liệu</span></button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+    </aside>
+
+    <!-- ============ TASKS VIEW ============ -->
+    <main class="view" id="view-tasks">
+      <header class="view-head">
+        <div class="month-nav">
+          <button class="icon-btn" id="prevMonth" aria-label="Tháng trước">‹</button>
+          <h1 id="monthTitle">Tháng</h1>
+          <button class="icon-btn" id="nextMonth" aria-label="Tháng sau">›</button>
+          <button class="btn-sm" id="todayBtn">Hôm nay</button>
+        </div>
+        <div class="seg" id="taskMode">
+          <button data-mode="calendar" class="active">Lịch</button>
+          <button data-mode="list">Danh sách</button>
+        </div>
+      </header>
+
+      <section class="stats" id="stats"></section>
+
+      <div class="tasks-body">
+        <section class="panel calendar-panel" id="calendarPanel">
+          <div class="cal-week">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <p class="cal-hint">Mẹo: <b>kéo chuột</b> để bôi đen nhiều ngày · <b>Ctrl+click</b> chọn ngày rời rạc · <b>Shift+click</b> chọn cả khoảng · <b>Backspace/Delete</b> xoá việc trong các ngày đã chọn · <b>Esc</b> bỏ chọn</p>
+        </section>
+
+        <section class="panel list-panel hidden" id="listPanel">
+          <div class="list-tools">
+            <input type="search" id="taskSearch" placeholder="Tìm công việc trong tháng…">
+            <div class="chips" id="taskFilter">
+              <button data-f="all" class="active">Tất cả</button>
+              <button data-f="todo">Chưa xong</button>
+              <button data-f="done">Đã xong</button>
+              <button data-f="overdue">Quá hạn</button>
+            </div>
+          </div>
+          <div id="monthList"></div>
+        </section>
+
+        <aside class="panel day-panel">
+          <div class="day-head">
+            <div>
+              <div class="day-weekday" id="dayWeekday"></div>
+              <div class="day-date" id="dayDate"></div>
+            </div>
+            <div class="day-head-right">
+              <span class="day-count" id="dayCount"></span>
+              <button class="link-btn" id="clearSel" hidden>Bỏ chọn</button>
+            </div>
+          </div>
+          <form class="quick-add" id="quickAdd" autocomplete="off">
+            <input id="qaTitle" placeholder="Thêm việc cho ngày này… (Enter)" maxlength="200">
+            <select id="qaPriority" title="Mức ưu tiên">
+              <option value="low">Thấp</option>
+              <option value="med" selected>Vừa</option>
+              <option value="high">Cao</option>
+            </select>
+            <button class="btn-primary" type="submit">+</button>
+          </form>
+          <ul class="task-list" id="dayTasks"></ul>
+          <button class="link-btn" id="carryOver" hidden>↪ Dời việc quá hạn sang hôm nay</button>
+        </aside>
+      </div>
+    </main>
+
+    <!-- ============ NOTES VIEW ============ -->
+    <main class="view hidden" id="view-notes">
+      <div class="notes-body">
+        <section class="panel classes-col">
+          <div class="col-head">
+            <h2>Lớp học</h2>
+            <button class="icon-btn" id="addClass" title="Thêm lớp">+</button>
+          </div>
+          <ul class="class-list" id="classList"></ul>
+        </section>
+
+        <section class="panel noteslist-col">
+          <div class="col-head">
+            <input type="search" id="noteSearch" placeholder="Tìm ghi chú, #tag…">
+            <button class="btn-primary" id="addNote" title="Ghi chú mới">+ Mới</button>
+          </div>
+          <ul class="note-list" id="noteList"></ul>
+        </section>
+
+        <section class="panel editor-col" id="editor">
+          <div class="empty" id="editorEmpty">
+            <div class="empty-ico">❏</div>
+            <p>Chọn một ghi chú hoặc tạo ghi chú mới.</p>
+          </div>
+          <div class="editor hidden" id="editorWrap">
+            <div class="editor-top">
+              <button class="icon-btn back-btn" id="backToList" title="Quay lại">‹</button>
+              <input class="note-title" id="noteTitle" placeholder="Tiêu đề buổi học…" maxlength="200">
+              <button class="icon-btn" id="notePin" title="Ghim">☆</button>
+              <button class="icon-btn danger" id="noteDelete" title="Xoá">🗑</button>
+            </div>
+            <div class="editor-meta">
+              <label>Lớp <select id="noteClass"></select></label>
+              <label>Ngày <input type="date" id="noteDate"></label>
+              <label class="grow">Tag <input id="noteTags" placeholder="kiểm tra, chương 2…"></label>
+            </div>
+            <div class="editor-tabs">
+              <div class="seg" id="editorMode">
+                <button data-mode="write" class="active">Soạn</button>
+                <button data-mode="preview">Xem</button>
+              </div>
+              <span class="save-state" id="saveState"></span>
+            </div>
+            <textarea id="noteContent" spellcheck="false" placeholder="Nội dung ghi chú…
+
+Hỗ trợ định dạng nhanh:
+# Tiêu đề   **đậm**   *nghiêng*   ==tô sáng==   `code`
+- gạch đầu dòng     1. danh sách số     - [ ] việc cần làm
+> trích dẫn         --- (đường kẻ)"></textarea>
+            <article class="md hidden" id="notePreview"></article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+  <!-- ============ MONEY VIEW ============ -->
+  <main class="view hidden" id="view-money">
+    <header class="view-head">
+      <div class="month-nav">
+        <button class="icon-btn" id="mPrev" aria-label="Tháng trước">‹</button>
+        <h1 id="mTitle">Tháng</h1>
+        <button class="icon-btn" id="mNext" aria-label="Tháng sau">›</button>
+        <button class="btn-sm" id="mToday">Tháng này</button>
+      </div>
+    </header>
+
+    <section class="stats" id="mStats"></section>
+
+    <div class="money-body">
+      <div class="money-main">
+        <section class="panel chart-panel">
+          <div class="panel-head">
+            <h2>Chi tiêu theo ngày</h2>
+            <span class="panel-sub" id="mDailySub"></span>
+          </div>
+          <div class="daily-chart" id="mDaily"></div>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="list-tools">
+            <div class="list-tools-row">
+              <input type="search" id="mSearch" placeholder="Tìm giao dịch, ghi chú…">
+            </div>
+            <div class="chips" id="mFilter">
+              <button data-f="all" class="active">Tất cả</button>
+              <button data-f="in">Tiền vào</button>
+              <button data-f="out">Tiền ra</button>
+              <button class="day-chip hidden" id="mDayChip" data-f="day"></button>
+            </div>
+          </div>
+          <div id="mList"></div>
+        </section>
+      </div>
+
+      <aside class="money-side">
+        <section class="panel add-panel">
+          <form id="mForm" autocomplete="off">
+            <div class="seg type-seg" id="mType">
+              <button type="button" data-t="out" class="active">− Tiền tiêu</button>
+              <button type="button" data-t="in">+ Tiền kiếm được</button>
+            </div>
+            <label class="amount-wrap">
+              <input id="mAmount" inputmode="decimal" placeholder="0" aria-label="Số tiền">
+              <span>đ</span>
+            </label>
+            <div class="amount-hint" id="mAmountHint">Gõ nhanh: 50k · 1.5tr · 120000</div>
+            <div class="chips quick-amt" id="mQuick"></div>
+            <div class="row">
+              <label class="field">Danh mục<select id="mCategory"></select></label>
+              <label class="field">Ngày<input type="date" id="mDate"></label>
+            </div>
+            <label class="field">Ghi chú<input id="mNote" maxlength="120" placeholder="VD: cơm trưa, tiền gia sư…"></label>
+            <button class="btn-primary add-btn" type="submit" id="mSubmit">Thêm khoản chi</button>
+          </form>
+        </section>
+
+        <section class="panel cat-panel">
+          <div class="panel-head">
+            <h2 id="mCatTitle">Chi theo danh mục</h2>
+            <div class="seg seg-sm" id="mCatType">
+              <button data-t="out" class="active">Chi</button>
+              <button data-t="in">Thu</button>
+            </div>
+          </div>
+          <div id="mCats"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+  </div>
+
+  <!-- Money dialog -->
+  <dialog id="moneyDialog">
+    <form method="dialog" id="moneyEditForm" class="dlg">
+      <h3>Sửa giao dịch</h3>
+      <div class="seg type-seg" id="eType">
+        <button type="button" data-t="out">− Tiền tiêu</button>
+        <button type="button" data-t="in">+ Tiền kiếm được</button>
+      </div>
+      <label>Số tiền<input id="eAmount" inputmode="decimal" required></label>
+      <div class="row">
+        <label>Danh mục<select id="eCategory"></select></label>
+        <label>Ngày<input type="date" id="eDate" required></label>
+      </div>
+      <label>Ghi chú<input id="eNote" maxlength="120"></label>
+      <div class="dlg-actions">
+        <button type="button" class="btn-danger" id="eDelete">Xoá</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-sm" id="eCancel">Huỷ</button>
+        <button type="submit" class="btn-primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Budget dialog -->
+  <dialog id="budgetDialog">
+    <form method="dialog" id="budgetForm" class="dlg">
+      <h3 id="budgetTitle">Ngân sách chi tiêu</h3>
+      <p class="confirm-msg">Đặt mức tối đa bạn muốn tiêu trong tháng. Để trống để bỏ ngân sách.</p>
+      <label>Số tiền tối đa<input id="bAmount" inputmode="decimal" placeholder="VD: 3tr"></label>
+      <label class="check"><input type="checkbox" id="bDefault" checked> Dùng mức này cho các tháng sau chưa đặt ngân sách</label>
+      <div class="dlg-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn-sm" id="bCancel">Huỷ</button>
+        <button type="submit" class="btn-primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Task dialog -->
+  <dialog id="taskDialog">
+    <form method="dialog" id="taskForm" class="dlg">
+      <h3 id="taskDlgTitle">Công việc</h3>
+      <label>Tên công việc<input id="tTitle" required maxlength="200"></label>
+      <div class="row">
+        <label id="tDateWrap">Ngày<input type="date" id="tDate" required></label>
+        <label>Giờ<input type="time" id="tTime"></label>
+      </div>
+      <div class="multi-info hidden" id="tMultiInfo"></div>
+      <div class="row">
+        <label>Ưu tiên
+          <select id="tPriority">
+            <option value="low">Thấp</option>
+            <option value="med">Vừa</option>
+            <option value="high">Cao</option>
+          </select>
+        </label>
+        <label>Phân loại<input id="tCategory" list="catList" placeholder="Học tập, Cá nhân…" maxlength="40"></label>
+        <datalist id="catList"></datalist>
+      </div>
+      <label>Ghi chú<textarea id="tNote" rows="3"></textarea></label>
+      <label class="check"><input type="checkbox" id="tDone"> Đã hoàn thành</label>
+      <label class="check hidden" id="tGroupWrap"><input type="checkbox" id="tApplyGroup" checked> <span id="tGroupLabel">Áp dụng thay đổi cho cả chuỗi</span></label>
+      <div class="dlg-actions">
+        <button type="button" class="btn-danger" id="tDelete">Xoá</button>
+        <button type="button" class="btn-danger hidden" id="tDeleteGroup">Xoá cả chuỗi</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-sm" value="cancel" id="tCancel">Huỷ</button>
+        <button type="submit" class="btn-primary" value="ok">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Class dialog -->
+  <dialog id="classDialog">
+    <form method="dialog" id="classForm" class="dlg">
+      <h3 id="classDlgTitle">Lớp học</h3>
+      <label>Tên lớp / môn<input id="cName" required maxlength="80" placeholder="VD: Toán cao cấp A1"></label>
+      <div class="row">
+        <label>Giảng viên<input id="cTeacher" maxlength="80"></label>
+        <label>Lịch học<input id="cSchedule" maxlength="80" placeholder="T2, T4 – 7:30"></label>
+      </div>
+      <label>Màu</label>
+      <div class="swatches" id="cColors"></div>
+      <div class="dlg-actions">
+        <button type="button" class="btn-danger" id="cDelete">Xoá lớp</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-sm" id="cCancel">Huỷ</button>
+        <button type="submit" class="btn-primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm dialog (dùng cho mọi thao tác xoá) -->
+  <dialog id="confirmDialog" class="confirm-dlg">
+    <div class="dlg">
+      <div class="confirm-head">
+        <span class="confirm-ico" id="cfIcon">!</span>
+        <div>
+          <h3 id="cfTitle">Xác nhận</h3>
+          <p class="confirm-msg" id="cfMsg"></p>
+        </div>
+      </div>
+      <div class="confirm-detail hidden" id="cfDetail"></div>
+      <div class="dlg-actions" id="cfActions"></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="toast-ico" id="toastIco"></span>
+    <span class="toast-msg" id="toastMsg"></span>
+    <button class="toast-action hidden" id="toastAction">Hoàn tác</button>
+    <button class="toast-close" id="toastClose" aria-label="Đóng">×</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
