@@ -9,7 +9,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="locked">
+  <!-- Đăng nhập -->
+  <div class="login-screen" id="loginScreen" hidden>
+    <form class="login-card" id="loginForm" autocomplete="on">
+      <div class="login-brand"><span class="brand-logo">✎</span><span class="brand-name">WebNote</span></div>
+      <h1>Đăng nhập</h1>
+      <p class="login-sub">Sổ tay công việc, lớp học &amp; thu chi</p>
+      <label>Tài khoản<input id="loginUser" name="username" autocomplete="username" required></label>
+      <label>Mật khẩu<input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>
+      <div class="login-opts">
+        <label class="check"><input type="checkbox" id="loginShowPass"> Hiện mật khẩu</label>
+        <label class="check"><input type="checkbox" id="loginRemember" checked> Ghi nhớ đăng nhập</label>
+      </div>
+      <p class="login-error" id="loginError" role="alert" hidden></p>
+      <button class="btn-primary login-btn" id="loginBtn" type="submit">Đăng nhập</button>
+    </form>
+  </div>
+
   <div class="app">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -33,6 +50,7 @@
         <button class="ghost-btn" id="btnExport" title="Tải bản sao lưu">⤓ <span>Xuất dữ liệu</span></button>
         <button class="ghost-btn" id="btnImport" title="Khôi phục từ file">⤒ <span>Nhập dữ liệu</span></button>
         <input type="file" id="importFile" accept="application/json" hidden>
+        <button class="ghost-btn" id="btnLogout" title="Đăng xuất">⏻ <span>Đăng xuất</span></button>
       </div>
     </aside>
 
@@ -346,6 +364,7 @@ Hỗ trợ định dạng nhanh:
     <button class="toast-close" id="toastClose" aria-label="Đóng">×</button>
   </div>
 
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
